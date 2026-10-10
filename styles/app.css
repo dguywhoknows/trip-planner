@@ -1,4 +1,4 @@
-:root { --accent: #0d9488; }
+:root { --accent: #187a72; }
 .toolbar { display: flex; gap: 8px; align-items: center; padding: 10px 24px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
 .toolbar #dest { max-width: 240px; }
 .split { height: calc(100vh - 150px); min-height: 480px; display: grid; grid-template-columns: minmax(0, 1fr) 460px; }

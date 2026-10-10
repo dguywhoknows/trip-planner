@@ -1,4 +1,4 @@
-/* core.js — distances, legs, route optimization, day scheduling with opening hours, budgets, expense splitting, packing lists and exports (pure, unit-tested). */
+/* Distances, legs, route optimization, day scheduling with opening hours, budgets, expense splitting, packing lists and exports (pure, unit-tested). */
 
 var R_EARTH = 6371;
 function haversine(a, b) {

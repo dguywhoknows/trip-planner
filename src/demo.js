@@ -1,4 +1,4 @@
-/* demo.js — a hand-built two-day Lisbon itinerary used on first load and without a model provider. */
+/* A hand-built two-day Lisbon itinerary used on first load and without a model provider. */
 var DEMO_TRIP = {
   title: '48 hours in Lisbon: tiles, tarts & viewpoints',
   days: [
