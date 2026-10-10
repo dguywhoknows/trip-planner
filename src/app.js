@@ -210,3 +210,30 @@ Router.on('expenses', renderExpenses);
 Router.on('packing', renderPacking);
 Router.on('trips', renderTrips);
 render();
+
+/* ================= AI command box ================= */
+const findStop = (name) => {
+  const q = String(name || '').toLowerCase();
+  for (let di = 0; di < T.days.length; di++) { const si = T.days[di].stops.findIndex((s) => s.name.toLowerCase().includes(q) || q.includes(s.name.toLowerCase())); if (si >= 0) return [di, si]; }
+  throw new Error(`No stop matching "${name}"`);
+};
+Copilot.register({
+  context: () => `Trip "${T.title}" to ${T.dest}, starting ${T.startDate}. ${T.days.map((d, i) => `Day ${i + 1}: ${d.stops.map((s) => s.name).join(', ')}`).join('. ')}. Travellers: ${T.people.join(', ')}. Home currency ${T.home}. ${T.expenses.length} expenses logged.`,
+  actions: [
+    { name: 'plan_trip', description: 'Plan a brand-new itinerary (replaces the view with a new saved trip)', params: { destination: 'city or region', days: 'number of days 1-5', interests: 'comma-separated interests', pace: 'relaxed | balanced | packed', budget: 'budget | mid | lux', start_date: 'YYYY-MM-DD, optional' },
+      run: async (a) => { $('#dest').value = a.destination || $('#dest').value; if (a.days) $('#days').value = String(Math.max(1, Math.min(5, +a.days))); if (a.interests) $('#interests').value = a.interests; if (a.pace) $('#pace').value = a.pace; if (a.budget) $('#budget').value = a.budget; if (a.start_date) $('#startDate').value = a.start_date; Router.go('planner'); await plan(); return `Planned "${T.title}"`; } },
+    { name: 'move_stop', description: 'Move an existing stop to another day (and optionally position)', params: { stop: 'name of the stop', day: 'target day number (1-based)', position: 'optional 1-based position in that day' },
+      run: ({ stop, day, position }) => { const [di, si] = findStop(stop), to = Math.max(1, Math.min(T.days.length, +day)) - 1; T = Object.assign(T, moveStop(T, di, si, to, position ? +position - 1 : 99)); curDay = to; render(false); return `Moved ${stop} to day ${to + 1}`; } },
+    { name: 'add_stop', description: 'Add a real place to a day (located with OpenStreetMap)', params: { place: 'place name', day: 'day number (1-based)', minutes: 'optional time to spend', category: `optional, one of ${CATS.join(', ')}` },
+      run: async ({ place, day, minutes, category }) => { const di = Math.max(1, Math.min(T.days.length, +day || curDay + 1)) - 1, g = await geocode(`${place}, ${T.dest || ''}`); if (!g) throw new Error(`Could not find ${place}`); T.days[di].stops.push({ name: place, lat: g.lat, lng: g.lng, duration_min: +minutes || 60, category: CATS.includes(category) ? category : 'sight', cost_estimate_usd: 0, note: '' }); curDay = di; render(false); return `Added ${place} to day ${di + 1}`; } },
+    { name: 'remove_stop', description: 'Remove a stop from the trip', params: { stop: 'name of the stop' }, run: ({ stop }) => { const [di, si] = findStop(stop); const s = T.days[di].stops.splice(si, 1)[0]; if (T.days[di].stops[0] && !T.days[di].stops[0].time) T.days[di].stops[0].time = '09:00'; render(false); return `Removed ${s.name}`; } },
+    { name: 'optimize_routes', description: 'Reorder each day to minimize travel distance', params: {}, run: () => { $('#opt').click(); return 'Optimized the routes'; } },
+    { name: 'set_travellers', description: 'Set who is travelling (for splitting costs)', params: { names: 'comma-separated names' }, run: ({ names }) => { T.people = [...new Set(String(names).split(',').map((x) => x.trim()).filter(Boolean))]; save(); return `Travellers: ${T.people.join(', ')}`; } },
+    { name: 'log_expense', description: 'Record money spent on the trip', params: { what: 'description', amount: 'number', currency: '3-letter code', paid_by: 'traveller name', split_between: 'optional comma-separated names (default everyone)', category: 'food | sight | transport | lodging | shopping | nightlife | other' },
+      run: ({ what, amount, currency, paid_by, split_between, category }) => { const payer = paid_by || T.people[0]; if (!T.people.includes(payer)) T.people.push(payer); const split = split_between ? String(split_between).split(',').map((x) => x.trim()).filter(Boolean) : T.people.slice(); split.forEach((p) => { if (!T.people.includes(p)) T.people.push(p); }); T.expenses.push({ id: uid(), what: what || 'Expense', category: category || 'other', amount: +amount, currency: (currency || T.home).toUpperCase(), paidBy: payer, split, t: Date.now() }); save(); Router.go('expenses'); renderExpenses(); const st = settleUp(balances(T.expenses, T.people, T.rates, T.home)); return `Logged ${amount} ${currency || T.home}. ${st.map((x) => `${x.from} owes ${x.to} ${x.amount} ${T.home}`).join('; ') || 'Everyone is even.'}`; } },
+    { name: 'set_exchange_rate', description: 'Set an exchange rate relative to the home currency', params: { currency: '3-letter code', per_home_unit: 'units of that currency per 1 home currency' }, run: ({ currency, per_home_unit }) => { T.rates[String(currency).toUpperCase()] = +per_home_unit; save(); return `1 ${T.home} = ${per_home_unit} ${currency}`; } },
+    { name: 'packing_list', description: 'Build the packing list', params: { climate: 'hot | mild | cold | rainy', activities: 'comma-separated from beach, hiking, nightlife, dining, business, photography' },
+      run: ({ climate, activities }) => { Router.go('packing'); if (climate) $('#pClimate').value = climate; const acts = String(activities || '').split(',').map((x) => x.trim()); $$('#pActs input').forEach((c) => (c.checked = acts.includes(c.value))); makePacking(); return `Packing list ready: ${T.packing.length} items`; } },
+    { name: 'trip_summary', query: true, description: 'Look up the full schedule with times, travel legs, costs and warnings', params: {}, run: () => toMarkdown(T) + '\nTotals: ' + JSON.stringify(tripTotals(T)) },
+  ],
+});
