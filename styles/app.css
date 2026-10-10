@@ -1,0 +1,26 @@
+:root { --accent: #0d9488; }
+.toolbar { display: flex; gap: 8px; align-items: center; padding: 10px 24px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+.toolbar #dest { max-width: 240px; }
+.split { height: calc(100vh - 150px); min-height: 480px; display: grid; grid-template-columns: minmax(0, 1fr) 460px; }
+.map { height: 100%; width: 100%; background: var(--panel-2); }
+.panel { overflow-y: auto; padding: 16px; border-left: 1px solid var(--line); background: var(--bg); }
+.stop { display: grid; grid-template-columns: 52px 26px minmax(0, 1fr); gap: 8px; padding: 8px 0; align-items: start; cursor: pointer; }
+.stop .t { font: 600 12px var(--mono); color: var(--muted); padding-top: 4px; }
+.stop .dot { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: grid; place-items: center; font: 700 12px Inter, sans-serif; }
+.stop b { font-size: 14px; }
+.stop .note { font-size: 13px; color: var(--muted); }
+.leg { margin-left: 86px; font-size: 12px; color: var(--muted); border-left: 2px dashed var(--line); padding: 2px 0 2px 10px; }
+.pin { border-radius: 50% 50% 50% 0; transform: rotate(-45deg); width: 28px; height: 28px; display: grid; place-items: center; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.pin span { transform: rotate(45deg); color: #fff; font: 700 12px Inter, sans-serif; }
+.leaflet-container { font-family: Inter, sans-serif; }
+.bud { display: grid; grid-template-columns: 110px 1fr 60px; gap: 8px; align-items: center; font-size: 13px; margin-top: 6px; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; height: auto; } .map { height: 50vh; } .panel { border-left: 0; } }
+.stop .ctl { display: flex; gap: 2px; }
+.stop .ctl button { padding: 2px 6px; font-size: 11px; }
+.stop.warn b { color: var(--warn); }
+.chk { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: var(--text); }
+.pack h3 { margin: 14px 0 6px; }
+.pack label { display: flex; gap: 8px; align-items: center; padding: 4px 0; font-size: 14px; font-weight: 400; color: var(--text); }
+.pack label.done span { text-decoration: line-through; color: var(--muted); }
+.trip-card { display: flex; flex-direction: column; gap: 8px; }
+.trip-card.cur { border-color: var(--accent); }

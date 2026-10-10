@@ -1,0 +1,16 @@
+{
+  "name": "trip-planner",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AI travel itineraries on a live map, with route optimization, walking times, a budget breakdown, location fixing and GPX/calendar export.",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "test": "node tests/run-node.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dguywhoknows/trip-planner.git"
+  },
+  "homepage": "https://dguywhoknows.github.io/trip-planner/",
+  "license": "MIT"
+}
